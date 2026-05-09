@@ -56,11 +56,14 @@ const clients = new Map(); // userId -> ws
 server.on('upgrade', (request, socket, head) => {
     // CSRF/Origin Protection
     const origin = request.headers.origin;
-    // You should restrict this to your domain in production
-    // if (origin !== 'http://localhost:5173') {
-    //     socket.destroy();
-    //     return;
-    // }
+    const allowedOrigins = ['https://shop.daberdev.my.id'];
+    
+    if (!allowedOrigins.includes(origin)) {
+        console.warn(`Blocked connection from forbidden origin: ${origin}`);
+        socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+        socket.destroy();
+        return;
+    }
 
     // Parse cookies
     const cookies = cookie.parse(request.headers.cookie || '');

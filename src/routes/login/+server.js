@@ -34,19 +34,16 @@ export async function POST({ request, cookies }) {
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);
 
-        cookies.set("refresh_token", refreshToken, {
+        const cookieOptions = {
             httpOnly: true,
             path: "/",
-            sameSite: "strict",
-            secure: false
-        });
+            sameSite: "none",
+            secure: true,
+            domain: ".daberdev.my.id"
+        };
 
-        cookies.set("access_token", accessToken, {
-            httpOnly: true,
-            path: "/",
-            sameSite: "strict",
-            secure: false
-        });
+        cookies.set("refresh_token", refreshToken, cookieOptions);
+        cookies.set("access_token", accessToken, cookieOptions);
 
         return json({ accessToken });
 

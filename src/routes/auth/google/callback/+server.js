@@ -118,8 +118,9 @@ export async function POST({ request, cookies }) {
         const cookieOptions = {
             httpOnly: true,
             path: "/",
-            sameSite: "strict",
-            secure: request.url.startsWith("https") // Auto-set secure on HTTPS
+            sameSite: "none",
+            secure: true,
+            domain: ".daberdev.my.id"
         };
 
         cookies.set("refresh_token", refreshToken, cookieOptions);

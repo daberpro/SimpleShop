@@ -46,6 +46,10 @@ export async function handle({ event, resolve }) {
     }
 
     const response = await resolve(event);
-    response.headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    try {
+        if (response.headers.get("content-type")?.includes("text/html")) {
+            response.headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+        }
+    } catch (e) { /* immutable */ }
     return response;
 }
