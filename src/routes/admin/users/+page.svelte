@@ -315,6 +315,11 @@
                                 <td
                                     class="px-6 py-4 text-sm text-right space-x-4"
                                 >
+                                    <a
+                                        href={`/admin/users/${item.id}`}
+                                        class="font-medium text-neutral-600 hover:text-black transition-colors"
+                                        >View</a
+                                    >
                                     <button
                                         class="font-medium text-blue-600 hover:text-blue-800 transition-colors"
                                         onclick={() => editItem(item)}

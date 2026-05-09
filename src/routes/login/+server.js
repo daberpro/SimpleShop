@@ -34,16 +34,19 @@ export async function POST({ request, cookies }) {
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);
 
+        const isProd = request.url.includes("daberdev.my.id");
         const cookieOptions = {
             httpOnly: true,
             path: "/",
-            sameSite: "none",
-            secure: true,
-            domain: ".daberdev.my.id"
+            sameSite: isProd ? "none" : "lax",
+            secure: isProd,
+            ...(isProd ? { domain: ".daberdev.my.id" } : {})
         };
 
         cookies.set("refresh_token", refreshToken, cookieOptions);
         cookies.set("access_token", accessToken, cookieOptions);
+        
+        // Also update CSRF for production if needed, though it's set in hooks
 
         return json({ accessToken });
 

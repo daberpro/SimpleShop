@@ -115,12 +115,13 @@ export async function POST({ request, cookies }) {
         const refreshToken = signRefreshToken(jwtPayload);
 
         // Set cookies
+        const isProd = request.url.includes("daberdev.my.id");
         const cookieOptions = {
             httpOnly: true,
             path: "/",
-            sameSite: "none",
-            secure: true,
-            domain: ".daberdev.my.id"
+            sameSite: isProd ? "none" : "lax",
+            secure: isProd,
+            ...(isProd ? { domain: ".daberdev.my.id" } : {})
         };
 
         cookies.set("refresh_token", refreshToken, cookieOptions);

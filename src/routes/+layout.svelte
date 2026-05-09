@@ -31,5 +31,7 @@
     </main>
     <Footer />
     <Toast />
-    <ChatWidget user={data.user} />
+    {#if data.user}
+        <ChatWidget user={data.user} />
+    {/if}
 </div>

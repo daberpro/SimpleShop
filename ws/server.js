@@ -56,8 +56,8 @@ const clients = new Map(); // userId -> ws
 server.on('upgrade', (request, socket, head) => {
     // CSRF/Origin Protection
     const origin = request.headers.origin;
-    const allowedOrigins = ['https://shop.daberdev.my.id'];
-    
+    const allowedOrigins = ['https://shop.daberdev.my.id', 'http://localhost:5173'];
+
     if (!allowedOrigins.includes(origin)) {
         console.warn(`Blocked connection from forbidden origin: ${origin}`);
         socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
@@ -143,12 +143,12 @@ wss.on('connection', async (ws) => {
 
         try {
             const [rows] = await pool.execute(sql, params);
-            ws.send(JSON.stringify({ 
-                type: 'history', 
-                data: rows.reverse(), 
-                offset, 
+            ws.send(JSON.stringify({
+                type: 'history',
+                data: rows.reverse(),
+                offset,
                 hasMore: rows.length === limit,
-                forUserId: targetUserId 
+                forUserId: targetUserId
             }));
         } catch (err) {
             console.error('History error:', err);

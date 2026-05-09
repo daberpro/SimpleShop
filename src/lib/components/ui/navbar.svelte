@@ -108,12 +108,33 @@
             </div>
 
             {#if isLoggedIn}
-                <button
-                    onclick={handleLogout}
-                    class="px-4 py-1.5 text-sm font-medium rounded-lg border border-neutral-300 text-neutral-700 hover:bg-neutral-100 transition-colors"
-                >
-                    Logout
-                </button>
+                <div class="flex items-center gap-3">
+                    <a href="/user/profile" class="flex items-center gap-2 group">
+                        <div class="w-8 h-8 rounded-full bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center transition-all group-hover:border-black">
+                            {#if page.data.profile?.avatar}
+                                <img src={page.data.profile.avatar} alt="Profile" class="w-full h-full object-cover" />
+                            {:else}
+                                <span class="text-xs font-bold text-neutral-500 group-hover:text-black">
+                                    {page.data.user.email[0].toUpperCase()}
+                                </span>
+                            {/if}
+                        </div>
+                        <div class="hidden lg:block">
+                            <div class="text-xs font-bold text-neutral-900 leading-none">
+                                {page.data.profile?.full_name || 'User'}
+                            </div>
+                            <div class="text-[10px] text-neutral-500">
+                                {page.data.user.role}
+                            </div>
+                        </div>
+                    </a>
+                    <button
+                        onclick={handleLogout}
+                        class="px-4 py-1.5 text-sm font-medium rounded-lg border border-neutral-300 text-neutral-700 hover:bg-neutral-100 transition-colors"
+                    >
+                        Logout
+                    </button>
+                </div>
             {:else}
                 <a
                     href="/login"
@@ -194,6 +215,21 @@
                 >Products</a
             >
             {#if isLoggedIn}
+                <div class="flex items-center gap-3 px-3 py-4 border-b border-neutral-100 mb-2">
+                    <div class="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center">
+                        {#if page.data.profile?.avatar}
+                            <img src={page.data.profile.avatar} alt="Profile" class="w-full h-full object-cover" />
+                        {:else}
+                            <span class="text-lg font-bold text-neutral-400">
+                                {page.data.user.email[0].toUpperCase()}
+                            </span>
+                        {/if}
+                    </div>
+                    <div>
+                        <div class="font-bold text-neutral-900">{page.data.profile?.full_name || 'User'}</div>
+                        <div class="text-xs text-neutral-500">{page.data.user.email}</div>
+                    </div>
+                </div>
                 <a
                     href="/home/order"
                     onclick={() => (menuOpen = false)}

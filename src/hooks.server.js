@@ -12,11 +12,13 @@ export async function handle({ event, resolve }) {
     if (!csrf) {
         csrf = crypto.randomBytes(24).toString("hex");
 
+        const isProd = event.url.hostname.includes("daberdev.my.id");
         event.cookies.set("csrf_token", csrf, {
             path: "/",
             httpOnly: false,     // harus false → supaya client bisa baca
-            sameSite: "strict",
-            secure: false        // true kalau sudah HTTPS
+            sameSite: isProd ? "none" : "lax",
+            secure: isProd,
+            ...(isProd ? { domain: ".daberdev.my.id" } : {})
         });
     }
 

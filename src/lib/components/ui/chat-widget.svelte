@@ -19,6 +19,7 @@
     let shouldScroll = true;
     let lastReadId = $state(0);
     let loadingHistory = $state(true);
+    let reconnectTimeout;
 
     let totalUnread = $derived(
         user.role === 'admin' 
@@ -65,6 +66,7 @@
 
     onDestroy(() => {
         if (socket) socket.close();
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
     });
 
     function requestNotificationPermission() {
@@ -83,6 +85,8 @@
     }
 
     function connect() {
+        if (!user || status === "connected") return;
+        
         status = "connecting";
         socket = new WebSocket(PUBLIC_WS_HOST);
 
@@ -212,7 +216,10 @@
 
         socket.onclose = () => {
             status = "disconnected";
-            setTimeout(connect, 5000);
+            if (user) {
+                if (reconnectTimeout) clearTimeout(reconnectTimeout);
+                reconnectTimeout = setTimeout(connect, 5000);
+            }
         };
     }
 
