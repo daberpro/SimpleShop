@@ -111,7 +111,7 @@ export const UsersModel = {
 
     async update(id, data) {
         try {
-            const { email, password, role } = data;
+            const { email, password, role, google_id } = data;
 
             if (!email) {
                 return Result.error("Email is required", "VALIDATION_ERROR");
@@ -128,8 +128,8 @@ export const UsersModel = {
             }
 
             const result = await query(
-                "UPDATE users SET email = ?, password = ?, role = ? WHERE id = ?",
-                [email, password, role || "user", id]
+                "UPDATE users SET email = ?, password = ?, role = ?, google_id = ? WHERE id = ?",
+                [email, password, role || "user", google_id || null, id]
             );
 
             return Result.success(

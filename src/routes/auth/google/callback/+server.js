@@ -9,10 +9,19 @@ const client = new OAuth2Client(PUBLIC_GOOGLE_CLIENT_ID);
 
 export async function POST({ request, cookies }) {
     try {
-        const { idToken } = await request.json();
+        let idToken;
+        const contentType = request.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+            const body = await request.json();
+            idToken = body.idToken;
+        } else {
+            const formData = await request.formData();
+            idToken = formData.get("credential"); // GSI sends it as 'credential' in form POST
+        }
 
         if (!idToken) {
-            return json({ error: "Missing ID Token" }, { status: 400 });
+            return json({ error: "Missing ID Token or Credential" }, { status: 400 });
         }
 
         // Verify the token
@@ -33,7 +42,8 @@ export async function POST({ request, cookies }) {
         let user;
 
         if (userRes.IsError) {
-            return json({ error: "Database error" }, { status: 500 });
+            console.error("DB Error getByGoogleId:", userRes.Message);
+            return json({ error: "Database error during google_id check" }, { status: 500 });
         }
 
         if (!userRes.IsValueExists) {
@@ -41,17 +51,22 @@ export async function POST({ request, cookies }) {
             let emailUserRes = await UsersModel.getByEmail(email);
             
             if (emailUserRes.IsError) {
-                return json({ error: "Database error" }, { status: 500 });
+                console.error("DB Error getByEmail:", emailUserRes.Message);
+                return json({ error: "Database error during email check" }, { status: 500 });
             }
 
             if (emailUserRes.IsValueExists) {
                 // Link Google ID to existing account
                 user = emailUserRes.Value;
-                // We should update the user to include the google_id
-                await UsersModel.update(user.id, {
+                const updateRes = await UsersModel.update(user.id, {
                     ...user,
                     google_id: googleId
                 });
+                
+                if (updateRes.IsError) {
+                    console.error("DB Error linking google_id:", updateRes.Message);
+                    return json({ error: "Failed to link Google account" }, { status: 500 });
+                }
             } else {
                 // 3. Create new user
                 const createRes = await UsersModel.create({
@@ -61,7 +76,8 @@ export async function POST({ request, cookies }) {
                 });
 
                 if (createRes.IsError) {
-                    return json({ error: createRes.Message }, { status: 500 });
+                    console.error("DB Error creating user:", createRes.Message);
+                    return json({ error: "Failed to create user: " + createRes.Message }, { status: 500 });
                 }
 
                 // Get the newly created user
@@ -69,11 +85,15 @@ export async function POST({ request, cookies }) {
                 user = newUserRes.Value;
 
                 // Create initial profile
-                await ProfileModel.create({
+                const profileCreateRes = await ProfileModel.create({
                     user_id: user.id,
                     full_name: name,
                     avatar: picture
                 });
+
+                if (profileCreateRes.IsError) {
+                    console.warn("Profile creation failed (non-critical):", profileCreateRes.Message);
+                }
             }
         } else {
             user = userRes.Value;
@@ -95,19 +115,15 @@ export async function POST({ request, cookies }) {
         const refreshToken = signRefreshToken(jwtPayload);
 
         // Set cookies
-        cookies.set("refresh_token", refreshToken, {
+        const cookieOptions = {
             httpOnly: true,
             path: "/",
             sameSite: "strict",
-            secure: false // Set to true in production
-        });
+            secure: request.url.startsWith("https") // Auto-set secure on HTTPS
+        };
 
-        cookies.set("access_token", accessToken, {
-            httpOnly: true,
-            path: "/",
-            sameSite: "strict",
-            secure: false // Set to true in production
-        });
+        cookies.set("refresh_token", refreshToken, cookieOptions);
+        cookies.set("access_token", accessToken, cookieOptions);
 
         return json({ success: true, accessToken });
 
