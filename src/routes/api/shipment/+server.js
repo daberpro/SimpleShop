@@ -16,8 +16,9 @@ export async function GET({ url, locals }) {
     // Verify user owns the order if not admin
     if (locals.user.role !== 'admin') {
         const orderRes = await OrdersModel.getById(orderId);
-        if (!orderRes.Value || orderRes.Value.user_id !== locals.user.user_id) {
-            return json({ success: false, error: 'Unauthorized' }, { status: 403 });
+        
+        if (!orderRes.Value || Number(orderRes.Value.user_id) !== Number(locals.user.user_id)) {
+            return json({ success: false, error: 'Unauthorized: You do not own this order' }, { status: 403 });
         }
     }
 
