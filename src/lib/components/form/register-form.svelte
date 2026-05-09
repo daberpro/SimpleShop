@@ -11,7 +11,6 @@
     let loading = $state(false);
 
     async function handleSubmit() {
-        console.log("ppppppp")
         error = "";
 
         if (!email || !password) {

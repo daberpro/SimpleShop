@@ -34,6 +34,7 @@ async function initDB() {
             email VARCHAR(255) UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role VARCHAR(50) DEFAULT 'user',
+            google_id VARCHAR(255) UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);

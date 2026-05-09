@@ -6,10 +6,10 @@ export const UsersModel = {
 
     async create(data) {
         try {
-            const { email, password, role } = data;
+            const { email, password, role, google_id } = data;
 
-            if (!email || !password) {
-                return Result.error("Email and password are required", "VALIDATION_ERROR");
+            if (!email || (!password && !google_id)) {
+                return Result.error("Email and password (or google_id) are required", "VALIDATION_ERROR");
             }
 
             const existing = await query(
@@ -21,11 +21,11 @@ export const UsersModel = {
                 return Result.error("Email already exists", "EMAIL_EXISTS");
             }
 
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = password ? await bcrypt.hash(password, 10) : "OAUTH_USER";
 
             const result = await query(
-                "INSERT INTO users (email, password, role) VALUES (?, ?, ?)",
-                [email, hashedPassword, role || "user"]
+                "INSERT INTO users (email, password, role, google_id) VALUES (?, ?, ?, ?)",
+                [email, hashedPassword, role || "user", google_id || null]
             );
 
             return Result.success(
@@ -35,6 +35,24 @@ export const UsersModel = {
 
         } catch (err) {
             return Result.error(err.message, "DB_CREATE_ERROR");
+        }
+    },
+
+    async getByGoogleId(google_id) {
+        try {
+            const rows = await query(
+                "SELECT * FROM users WHERE google_id = ?",
+                [google_id]
+            );
+
+            if (rows.length === 0) {
+                return Result.success(null, "User not found");
+            }
+
+            return Result.success(rows[0], "User found");
+
+        } catch (err) {
+            return Result.error(err.message, "DB_GET_ERROR");
         }
     },
 

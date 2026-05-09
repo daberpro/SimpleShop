@@ -33,7 +33,7 @@
         error = "";
 
         try {
-            const res = await fetch("/api/auth/google", {
+            const res = await fetch("/auth/google/callback", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ idToken: response.credential }),
